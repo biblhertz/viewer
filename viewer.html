@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mirador Viewer</title>
+    <script src="https://unpkg.com/mirador@latest/dist/mirador.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #viewer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100vh;
+        }
+        /* Force pointer events on annotation containers and links */
+        #viewer a,
+        #viewer .mirador-third-party-html,
+        #viewer .mirador-third-party-html * {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+        }
+    </style>
+</head>
+<body>
+<!-- byte-conform copy of:  https://viewer-f044f0.pages.mpcdf.de -->
+<div id="viewer"></div>
+
+<script type="text/javascript">
+    var urlParams = new URLSearchParams(window.location.search);
+    var manifestUrl = urlParams.get('manifest');
+    var canvasParam = urlParams.get('canvas');
+    var viewParam = urlParams.get('view');
+
+    if (!manifestUrl) {
+        document.body.innerHTML = '<h1>Error: No manifest URL provided</h1>';
+    } else {
+        var windowConfig = {
+            loadedManifest: manifestUrl
+        };
+
+        // Construct canvas ID if canvas parameter provided
+        if (canvasParam) {
+            // Extract object ID from manifest URL (e.g., dm5055800)
+            var objectMatch = manifestUrl.match(/iiif\/([^\/]+)\//);
+            if (objectMatch) {
+                var objectId = objectMatch[1];
+                var paddedCanvas = canvasParam.toString().padStart(4, '0');
+                var canvasId = 'https://dlib2.biblhertz.it/iiif/2/' + objectId + '@' + paddedCanvas + '-canvas';
+                windowConfig.canvasId = canvasId;
+            }
+        }
+
+        // Determine sidebar configuration from view parameter
+        var sideBarOpen = true;
+        var sideBarPanel = 'annotations'; // default
+
+        if (viewParam) {
+            // Valid panels: info, attribution, annotations, canvas
+            var validPanels = ['info', 'attribution', 'annotations', 'canvas'];
+            if (viewParam === 'none' || viewParam === 'closed') {
+                sideBarOpen = false;
+            } else if (validPanels.indexOf(viewParam) !== -1) {
+                sideBarPanel = viewParam;
+            }
+        }
+
+        var mirador = Mirador.viewer({
+            id: "viewer",
+            windows: [windowConfig],
+            "workspaceControlPanel": {
+                "enabled": false,
+            },
+            "window": {
+                "sideBarOpen": sideBarOpen,
+                "sideBarPanel": sideBarPanel,
+                "defaultSidebarPanelWidth": 350,
+                "panels": {
+                    "info": true,
+                    "attribution": true,
+                    "annotations": true,
+                    "canvas": true,
+                    "search": false,
+                    "layers": false,
+                }
+            },
+            themes: {
+                dark: {
+                    palette: {
+                        type: 'dark',
+                        primary: {
+                            main: '#8E1B15',
+                        },
+                        secondary: {
+                            main: '#8E1B15',
+                        }
+                    }
+                },
+                light: {
+                    palette: {
+                        type: 'light',
+                        primary: {
+                            main: '#8E1B15',
+                        },
+                        secondary: {
+                            main: '#8E1B15',
+                        }
+                    }
+                },
+            },
+        });
+
+        // Use mousedown instead of click (Mirador blocks click events)
+        document.addEventListener('mousedown', function(e) {
+            var target = e.target;
+            // Walk up the DOM to find if we clicked on or inside a link
+            while (target && target !== document) {
+                if (target.tagName === 'A' && target.href) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    window.open(target.href, target.target || '_blank');
+                    return false;
+                }
+                target = target.parentElement;
+            }
+        }, true); // Capture phase
+    }
+</script>
+</body>
+</html>
