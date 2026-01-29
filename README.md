@@ -1,4 +1,4 @@
-# viewer
+# viewer [deprecated]
 IIIF viewer with paramaters snatched from URL
 
 index.html was a start, but is now deprecated (delete w/o problems)
