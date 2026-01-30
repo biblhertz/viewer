@@ -1,4 +1,7 @@
 # viewer [deprecated]
+
+**deprecated, please look at https://github.com/biblhertz/view**
+
 IIIF viewer with paramaters snatched from URL
 
 index.html was a start, but is now deprecated (delete w/o problems)
